@@ -59,12 +59,13 @@ const sm = new StateMachine({ start: startService, stop: stopService })
 - [ExternalEvents](#externalevents)
 - [StartStopStateMachine](#startstopstatemachine)
   - [Parameters](#parameters)
+  - [state](#state)
   - [started](#started)
   - [stopped](#stopped)
   - [start](#start)
     - [Parameters](#parameters-1)
   - [stop](#stop)
-- [state](#state)
+- [state](#state-1)
 - [emitter](#emitter)
 
 ### ServiceState
@@ -110,6 +111,12 @@ To wait for the service to be in the "started" state from other methods, use
 
   - `opts.start` (optional, default `async()=>{}`)
   - `opts.stop` (optional, default `async()=>{}`)
+
+#### state
+
+Get the current state of the service.
+
+Returns **[ServiceState](#servicestate)**
 
 #### started
 

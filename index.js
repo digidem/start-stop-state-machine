@@ -70,6 +70,11 @@ class StartStopStateMachine extends TypedEmitter {
     this.#stop = stop
   }
 
+  /**
+   * Get the current state of the service.
+   *
+   * @returns {ServiceState}
+   */
   get state() {
     return this.#state
   }
