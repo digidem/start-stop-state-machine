@@ -13,6 +13,9 @@
     "prepublish": "npm run test",
     "prepare": "husky install"
   },
+  "files": [
+    "*.d.ts*"
+  ],
   "keywords": [],
   "author": "Digital Democracy",
   "license": "MIT",
