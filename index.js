@@ -49,6 +49,7 @@ const { TypedEmitter } = require('tiny-typed-emitter')
  * `await stateMachine.started()`. Note that if the services is "stopping" or
  * "stopped" then this will await (e.g. queue) until next start
  *
+ * @template {Array<any>} T
  * @extends {TypedEmitter<ExternalEvents>}
  */
 class StartStopStateMachine extends TypedEmitter {
@@ -61,7 +62,7 @@ class StartStopStateMachine extends TypedEmitter {
 
   /**
    * @param {Object} [opts]
-   * @param {(...args: any[]) => Promise<void>} [opts.start]
+   * @param {(...args: T) => Promise<void>} [opts.start]
    * @param {() => Promise<void>} [opts.stop]
    */
   constructor({ start = async () => {}, stop = async () => {} } = {}) {
@@ -177,7 +178,7 @@ class StartStopStateMachine extends TypedEmitter {
    * service is in the process of stopping, will wait until it stops before
    * starting and will not call opts.stop() more than once
    *
-   * @param {any[]} args
+   * @param {T} args
    * @returns {Promise<void>} Resolves when service is started
    */
   async start(...args) {

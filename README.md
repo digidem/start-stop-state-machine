@@ -162,7 +162,7 @@ starting and will not call opts.stop() more than once
 
 ##### Parameters
 
-- `args` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)\<any>**
+- `args` **T**
 
 Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>** Resolves when service is started
 
