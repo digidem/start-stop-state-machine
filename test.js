@@ -15,13 +15,15 @@ const StartStopStateMachine = require('./')
 
 test('Calling `start()` when the service is "stopped" calls the `opts.start()` method and resolves when it completes.', async (t) => {
   let started = false
+  const startArgs = [{}, {}, {}]
   const service = new StartStopStateMachine({
-    async start() {
+    async start(...args) {
+      t.deepEqual(args, startArgs, 'start args are passed to opts.start')
       await new Promise((res) => setTimeout(res, 100))
       started = true
     },
   })
-  await service.start()
+  await service.start.apply(service, startArgs)
   t.true(started, 'Service is started')
   t.deepEqual(service.state, { value: 'started' })
 })
@@ -293,18 +295,20 @@ test('Awaiting stopped() when service is stopped resolves', async (t) => {
 
 test('Calling `stop()` when the service is "started" calls the `opts.stop()` method and resolves when it completes.', async (t) => {
   let started = false
+  const stopArgs = [{}, {}, {}]
   const service = new StartStopStateMachine({
     async start() {
       started = true
     },
-    async stop() {
+    async stop(...args) {
+      t.deepEqual(args, stopArgs, 'stop args are passed to opts.stop')
       started = false
     },
   })
   await service.start()
   t.true(started, 'Service is in started state')
   t.deepEqual(service.state, { value: 'started' })
-  await service.stop()
+  await service.stop.apply(service, stopArgs)
   t.false(started, 'Service is stopped once `stop()` resolves')
   t.deepEqual(service.state, { value: 'stopped' })
 })

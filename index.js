@@ -49,7 +49,8 @@ const { TypedEmitter } = require('tiny-typed-emitter')
  * `await stateMachine.started()`. Note that if the services is "stopping" or
  * "stopped" then this will await (e.g. queue) until next start
  *
- * @template {Array<any>} T
+ * @template {Array<any>} TStartArgs
+ * @template {Array<any>} TStopArgs
  * @extends {TypedEmitter<ExternalEvents>}
  */
 class StartStopStateMachine extends TypedEmitter {
@@ -62,8 +63,8 @@ class StartStopStateMachine extends TypedEmitter {
 
   /**
    * @param {Object} [opts]
-   * @param {(...args: T) => Promise<void>} [opts.start]
-   * @param {() => Promise<void>} [opts.stop]
+   * @param {(...args: TStartArgs) => Promise<void>} [opts.start]
+   * @param {(...args: TStopArgs) => Promise<void>} [opts.stop]
    */
   constructor({ start = async () => {}, stop = async () => {} } = {}) {
     super()
@@ -178,7 +179,7 @@ class StartStopStateMachine extends TypedEmitter {
    * service is in the process of stopping, will wait until it stops before
    * starting and will not call opts.stop() more than once
    *
-   * @param {T} args
+   * @param {TStartArgs} args
    * @returns {Promise<void>} Resolves when service is started
    */
   async start(...args) {
@@ -213,13 +214,14 @@ class StartStopStateMachine extends TypedEmitter {
   /**
    * Stop the service.
    *
+   * @param {TStopArgs} args
    * @returns {Promise<void>}
    */
-  async stop() {
+  async stop(...args) {
     switch (this.#state.value) {
       case 'stopping':
         await this.stopped()
-        return this.stop()
+        return this.stop.apply(this, args)
       case 'stopped':
         return
       case 'error':
@@ -227,14 +229,14 @@ class StartStopStateMachine extends TypedEmitter {
       case 'starting':
         // Wait until started until stopping
         await this.started()
-        return this.stop()
+        return this.stop.apply(this, args)
       case 'started':
       default:
       // Continue
     }
     try {
       this._setState({ value: 'stopping' })
-      await this.#stop()
+      await this.#stop.apply(this, args)
       this._setState({ value: 'stopped' })
     } catch (e) {
       this._setState({ value: 'error', error: e })
