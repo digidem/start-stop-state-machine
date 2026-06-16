@@ -10,8 +10,9 @@ const { TypedEmitter } = require('tiny-typed-emitter')
 
 /**
  * @private
+ * @template TStartResult
  * @typedef {Object} InternalEvents
- * @property {() => void} started
+ * @property {(result: TStartResult) => void} started
  * @property {() => void} stopped
  * @property {(error: Error) => void} internal-error
  */
@@ -51,22 +52,30 @@ const { TypedEmitter } = require('tiny-typed-emitter')
  *
  * @template {Array<any>} TStartArgs
  * @template {Array<any>} TStopArgs
+ * @template {any} [TStartResult=void]
  * @extends {TypedEmitter<ExternalEvents>}
  */
 class StartStopStateMachine extends TypedEmitter {
   /** @type {ServiceState} */
   #state = { value: 'stopped' }
-  /** @type {TypedEmitter<InternalEvents>} */
+  /** @type {TypedEmitter<InternalEvents<TStartResult>>} */
   #emitter = new TypedEmitter()
+  /** @type {TStartResult} */
+  #startResult = /** @type {TStartResult} */ (undefined)
   #start
   #stop
 
   /**
    * @param {Object} [opts]
-   * @param {(...args: TStartArgs) => Promise<void>} [opts.start]
+   * @param {(...args: TStartArgs) => Promise<TStartResult>} [opts.start]
    * @param {(...args: TStopArgs) => Promise<void>} [opts.stop]
    */
-  constructor({ start = async () => {}, stop = async () => {} } = {}) {
+  constructor({
+    start = /** @type {(...args: TStartArgs) => Promise<TStartResult>} */ (
+      async () => {}
+    ),
+    stop = async () => {},
+  } = {}) {
     super()
     this.#start = start
     this.#stop = stop
@@ -87,7 +96,8 @@ class StartStopStateMachine extends TypedEmitter {
    */
   _setState(state) {
     this.#state = state
-    if (state.value === 'started') this.#emitter.emit('started')
+    if (state.value === 'started')
+      this.#emitter.emit('started', this.#startResult)
     else if (state.value === 'stopped') this.#emitter.emit('stopped')
     else if (state.value === 'error')
       this.#emitter.emit('internal-error', state.error)
@@ -108,18 +118,22 @@ class StartStopStateMachine extends TypedEmitter {
    * until the next time the service starts. If this is not desirable behaviour,
    * check this.#state.value first
    *
-   * @returns {Promise<void>}
+   * @returns {Promise<TStartResult>} Resolves with the value returned by `opts.start()`
    */
   async started() {
-    if (this.#state.value === 'started') return
+    if (this.#state.value === 'started') return this.#startResult
     if (this.#state.value === 'error') throw this.#state.error
     const emitter = this.#emitter
     return new Promise((resolve, reject) => {
       emitter.once('started', onStarted)
       emitter.once('internal-error', onError)
-      function onStarted() {
+      /**
+       * @private
+       * @param {TStartResult} result
+       */
+      function onStarted(result) {
         emitter.off('internal-error', onError)
-        resolve()
+        resolve(result)
       }
       /**
        * @private
@@ -180,7 +194,7 @@ class StartStopStateMachine extends TypedEmitter {
    * starting and will not call opts.stop() more than once
    *
    * @param {TStartArgs} args
-   * @returns {Promise<void>} Resolves when service is started
+   * @returns {Promise<TStartResult>} Resolves with the value returned by `opts.start()` when the service is started
    */
   async start(...args) {
     switch (this.#state.value) {
@@ -189,7 +203,7 @@ class StartStopStateMachine extends TypedEmitter {
         // Avoid race condition if another function is queued up
         return this.start(...args)
       case 'started':
-        return
+        return this.#startResult
       case 'error':
         return Promise.reject(this.#state.error)
       case 'stopping':
@@ -203,8 +217,9 @@ class StartStopStateMachine extends TypedEmitter {
     }
     try {
       this._setState({ value: 'starting' })
-      await this.#start.apply(this, args)
+      this.#startResult = await this.#start.apply(this, args)
       this._setState({ value: 'started' })
+      return this.#startResult
     } catch (e) {
       this._setState({ value: 'error', error: e })
       throw e
@@ -237,6 +252,8 @@ class StartStopStateMachine extends TypedEmitter {
     try {
       this._setState({ value: 'stopping' })
       await this.#stop.apply(this, args)
+      // Release the start result so a stopped service doesn't retain it
+      this.#startResult = /** @type {TStartResult} */ (undefined)
       this._setState({ value: 'stopped' })
     } catch (e) {
       this._setState({ value: 'error', error: e })

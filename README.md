@@ -9,12 +9,12 @@ A simple state machine for managing a service that asynchronously starts and sto
 
 ## Table of Contents
 
-*   [Install](#install)
-*   [Usage](#usage)
-*   [API](#api)
-*   [Maintainers](#maintainers)
-*   [Contributing](#contributing)
-*   [License](#license)
+- [Install](#install)
+- [Usage](#usage)
+- [API](#api)
+- [Maintainers](#maintainers)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Install
 
@@ -55,19 +55,20 @@ const sm = new StateMachine({ start: startService, stop: stopService })
 
 #### Table of Contents
 
-*   [ServiceState](#servicestate)
-*   [ExternalEvents](#externalevents)
-*   [StartStopStateMachine](#startstopstatemachine)
-    *   [Parameters](#parameters)
-    *   [state](#state)
-    *   [started](#started)
-    *   [stopped](#stopped)
-    *   [start](#start)
-        *   [Parameters](#parameters-1)
-    *   [stop](#stop)
-        *   [Parameters](#parameters-2)
-*   [state](#state-1)
-*   [emitter](#emitter)
+- [ServiceState](#servicestate)
+- [ExternalEvents](#externalevents)
+- [StartStopStateMachine](#startstopstatemachine)
+  - [Parameters](#parameters)
+  - [state](#state)
+  - [started](#started)
+  - [stopped](#stopped)
+  - [start](#start)
+    - [Parameters](#parameters-1)
+  - [stop](#stop)
+    - [Parameters](#parameters-2)
+- [state](#state-1)
+- [emitter](#emitter)
+- [startResult](#startresult)
 
 ### ServiceState
 
@@ -85,20 +86,20 @@ A state machine for managing a service that has asynchronous "start" and
 "stop" methods. Create an instance passing async `opts.start()` and
 `opts.stop()` methods. It manages state following some basic rules:
 
-*   Most importantly: You can call start() and stop() multiple times, but the
-    service will end in the state of the last call (e.g. if the last call was
-    to `stop()` then it will end up stopped)
-*   Calling `start()` when the service is "stopped" calls the `opts.start()` method
-    and resolves when it completes.
-*   Calling `start()` when the service is "starting" (e.g. `start()` has been
-    called but has not completed) will not call `opts.start()` again, but will
-    resolve once the service has started
-*   Calling `start()` when the service is "started" will resolve immediately
-    and do nothing.
-*   If `opts.start()` or `opts.stop()` throw, then the service is left in an
-    unrecoverable "error" state.
-*   Calling `start()` or `stop()` when the service is in "error" state will
-    throw with the error from the error state
+- Most importantly: You can call start() and stop() multiple times, but the
+  service will end in the state of the last call (e.g. if the last call was
+  to `stop()` then it will end up stopped)
+- Calling `start()` when the service is "stopped" calls the `opts.start()` method
+  and resolves when it completes.
+- Calling `start()` when the service is "starting" (e.g. `start()` has been
+  called but has not completed) will not call `opts.start()` again, but will
+  resolve once the service has started
+- Calling `start()` when the service is "started" will resolve immediately
+  and do nothing.
+- If `opts.start()` or `opts.stop()` throw, then the service is left in an
+  unrecoverable "error" state.
+- Calling `start()` or `stop()` when the service is in "error" state will
+  throw with the error from the error state
 
 Logic for calling `stop()` follows the inverse of `start()`.
 
@@ -108,16 +109,16 @@ To wait for the service to be in the "started" state from other methods, use
 
 #### Parameters
 
-*   `opts` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?**  (optional, default `{}`)
+- `opts` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** (optional, default `{}`)
 
-    *   `opts.start`   (optional, default `async()=>{}`)
-    *   `opts.stop`   (optional, default `async()=>{}`)
+  - `opts.start` (optional, default `/** @type {(...args: TStartArgs) => Promise<TStartResult>} */async()=>{}`)
+  - `opts.stop` (optional, default `async()=>{}`)
 
 #### state
 
 Get the current state of the service.
 
-Returns **[ServiceState](#servicestate)** 
+Returns **[ServiceState](#servicestate)**
 
 #### started
 
@@ -134,7 +135,7 @@ Note: If the service is in "stopping" or "stopped" state this will queue
 until the next time the service starts. If this is not desirable behaviour,
 check this.#state.value first
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>** 
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<TStartResult>** Resolves with the value returned by `opts.start()`
 
 #### stopped
 
@@ -152,7 +153,7 @@ Note: If the service is in "starting" or "started" state this will queue
 until the next time the service stops. If this is not desirable behaviour,
 check this.#state.value first
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>** 
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>**
 
 #### start
 
@@ -163,9 +164,9 @@ starting and will not call opts.stop() more than once
 
 ##### Parameters
 
-*   `args` **TStartArgs** 
+- `args` **TStartArgs**
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>** Resolves when service is started
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<TStartResult>** Resolves with the value returned by `opts.start()` when the service is started
 
 #### stop
 
@@ -173,9 +174,9 @@ Stop the service.
 
 ##### Parameters
 
-*   `args` **TStopArgs** 
+- `args` **TStopArgs**
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>** 
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<void>**
 
 ### state
 
@@ -183,7 +184,21 @@ Type: [ServiceState](#servicestate)
 
 ### emitter
 
-Type: TypedEmitter\<InternalEvents>
+Type: TypedEmitter\<InternalEvents\<TStartResult>>
+
+### startResult
+
+Type: TStartResult
+
+###
+
+Type: TStartResult
+
+###
+
+###
+
+Type: TStartResult
 
 ## Maintainers
 
