@@ -1,5 +1,5 @@
-const test = require('tape')
-const StartStopStateMachine = require('./')
+import test from 'tape'
+import StartStopStateMachine from './index.js'
 
 // * - Calling `start()` when the service is "stopped" calls the `opts.start()` method
 // *   and resolves when it completes.
