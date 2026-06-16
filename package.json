@@ -10,8 +10,8 @@
     "tape": "c8 --100 node --expose-gc node_modules/tape/bin/tape test.js",
     "posttest": "c8 report --reporter=text-lcov > ./coverage/lcov.info",
     "type": "tsc",
-    "prepublish": "npm run test",
-    "prepare": "husky install"
+    "prepack": "npm run test",
+    "prepare": "husky"
   },
   "files": [
     "*.d.ts*"
@@ -20,28 +20,18 @@
   "author": "Digital Democracy",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^17.0.38",
-    "@types/tape": "^4.13.2",
-    "c8": "^7.11.3",
-    "eslint": "^8.16.0",
-    "husky": "^8.0.0",
-    "lint-staged": "^13.0.0",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.6.2",
-    "tape": "^5.5.3",
-    "typescript": "^4.7.2"
-  },
-  "eslintConfig": {
-    "env": {
-      "es2021": true,
-      "node": true
-    },
-    "extends": "eslint:recommended",
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module"
-    },
-    "rules": {}
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.2",
+    "@types/tape": "^5.8.1",
+    "c8": "^11.0.0",
+    "eslint": "^10.5.0",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "npm-run-all2": "^9.0.2",
+    "prettier": "^3.8.4",
+    "tape": "^5.10.1",
+    "typescript": "^6.0.3"
   },
   "prettier": {
     "semi": false,
