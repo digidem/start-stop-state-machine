@@ -221,7 +221,7 @@ class StartStopStateMachine extends TypedEmitter {
       this._setState({ value: 'started' })
       return this.#startResult
     } catch (e) {
-      this._setState({ value: 'error', error: e })
+      this._setState({ value: 'error', error: /** @type {Error} */ (e) })
       throw e
     }
   }
@@ -256,7 +256,7 @@ class StartStopStateMachine extends TypedEmitter {
       this.#startResult = /** @type {TStartResult} */ (undefined)
       this._setState({ value: 'stopped' })
     } catch (e) {
-      this._setState({ value: 'error', error: e })
+      this._setState({ value: 'error', error: /** @type {Error} */ (e) })
       throw e
     }
   }

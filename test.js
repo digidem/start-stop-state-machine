@@ -39,7 +39,7 @@ test('Calling `start()` when the service is "starting" (e.g. `start()` has been 
   t.deepEqual(
     service.state,
     { value: 'stopped' },
-    'Service is in stopped state'
+    'Service is in stopped state',
   )
   service.start()
   service.start()
@@ -48,14 +48,14 @@ test('Calling `start()` when the service is "starting" (e.g. `start()` has been 
   t.deepEqual(
     service.state,
     { value: 'starting' },
-    'Service is in starting state'
+    'Service is in starting state',
   )
   await service.start()
   t.equal(startCount, 1, 'service opts.start() is only called once')
   t.deepEqual(
     service.state,
     { value: 'started' },
-    'Service is in started state'
+    'Service is in started state',
   )
 })
 
@@ -72,13 +72,13 @@ test('Calling `start()` when the service is "started" will resolve immediately a
   t.deepEqual(
     service.state,
     { value: 'started' },
-    'Service is in started state'
+    'Service is in started state',
   )
   const timeStart = Date.now()
   await service.start()
   t.true(
     Date.now() - timeStart < 10,
-    'calling second time resolves immediately'
+    'calling second time resolves immediately',
   )
   await new Promise((res) => setTimeout(res, 0))
   t.equal(startCount, 1, 'service opts.start() has only been called once')
@@ -106,7 +106,7 @@ test('If `opts.start()` throws, then the service is left in an unrecoverable "er
   } catch (e) {
     t.ok(
       e instanceof Error,
-      'throws once in error state, even if opts.start() does not throw on second call'
+      'throws once in error state, even if opts.start() does not throw on second call',
     )
   }
   t.equal(service.state.value, 'error', 'in error state')
@@ -186,7 +186,7 @@ test('Awaiting started() when service is starting, but subsequently errors, thro
   const startPromise = service
     .start()
     .catch((e) =>
-      t.equal(e, testError, 'start() throws with error from error state')
+      t.equal(e, testError, 'start() throws with error from error state'),
     )
   t.equal(service.state.value, 'starting', 'in starting state')
   try {
@@ -210,7 +210,7 @@ test('Awaiting stopped() when service is stopping, but subsequently errors, thro
   const stopPromise = service
     .stop()
     .catch((e) =>
-      t.equal(e, testError, 'stop() throws with error from error state')
+      t.equal(e, testError, 'stop() throws with error from error state'),
     )
   t.equal(service.state.value, 'stopping', 'in stopping state')
   try {
@@ -348,7 +348,7 @@ test('Calling `stop()` when the service is "stopped" will resolve immediately an
   await service.stop()
   t.true(
     Date.now() - timeStart < 10,
-    'calling second time resolves immediately'
+    'calling second time resolves immediately',
   )
   await new Promise((res) => setTimeout(res, 0))
   t.equal(stopCount, 1, 'service opts.stop() has only been called once')
@@ -379,7 +379,7 @@ test('If `opts.stop()` throws, then the service is left in an unrecoverable "err
   } catch (e) {
     t.ok(
       e instanceof Error,
-      'throws once in error state, even if opts.start() does not throw on second call'
+      'throws once in error state, even if opts.start() does not throw on second call',
     )
   }
   t.equal(service.state.value, 'error', 'in error state')
@@ -478,7 +478,7 @@ test('started() resolves with the value returned by opts.start()', async (t) => 
   t.equal(
     await service.started(),
     result,
-    'started() resolves once started too'
+    'started() resolves once started too',
   )
 })
 
