@@ -1,4 +1,4 @@
-const { TypedEmitter } = require('tiny-typed-emitter')
+import { TypedEmitter } from 'tiny-typed-emitter'
 
 /**
  * @private
@@ -262,4 +262,4 @@ class StartStopStateMachine extends TypedEmitter {
   }
 }
 
-module.exports = StartStopStateMachine
+export default StartStopStateMachine
