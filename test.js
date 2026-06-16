@@ -416,6 +416,105 @@ test('Calling start() and stop() multiple times ends in expected state', async (
   t.deepEqual(service.state, { value: 'stopped' })
 })
 
+test('start() resolves with the value returned by opts.start()', async (t) => {
+  const result = { handle: 'service-handle' }
+  const service = new StartStopStateMachine({
+    async start() {
+      await new Promise((res) => setTimeout(res, 50))
+      return result
+    },
+  })
+  const resolved = await service.start()
+  t.equal(resolved, result, 'start() resolves with opts.start() return value')
+})
+
+test('start() is idempotent and returns the same value when re-called', async (t) => {
+  let startCount = 0
+  const service = new StartStopStateMachine({
+    async start() {
+      await new Promise((res) => setTimeout(res, 50))
+      startCount++
+      return { id: startCount }
+    },
+  })
+  const first = await service.start()
+  const second = await service.start()
+  t.equal(startCount, 1, 'opts.start() only called once')
+  t.equal(second, first, 're-calling start() returns the same value')
+  t.deepEqual(first, { id: 1 }, 'value is from the single opts.start() call')
+})
+
+test('Concurrent start() calls while "starting" all resolve with the same value', async (t) => {
+  let startCount = 0
+  const service = new StartStopStateMachine({
+    async start() {
+      await new Promise((res) => setTimeout(res, 50))
+      startCount++
+      return { id: startCount }
+    },
+  })
+  const [a, b, c] = await Promise.all([
+    service.start(),
+    service.start(),
+    service.start(),
+  ])
+  t.equal(startCount, 1, 'opts.start() only called once')
+  t.equal(a, b, 'queued start() calls share the same value')
+  t.equal(b, c, 'queued start() calls share the same value')
+})
+
+test('started() resolves with the value returned by opts.start()', async (t) => {
+  const result = { handle: 'service-handle' }
+  const service = new StartStopStateMachine({
+    async start() {
+      await new Promise((res) => process.nextTick(res))
+      return result
+    },
+  })
+  const startPromise = service.start()
+  t.equal(service.state.value, 'starting', 'in starting state')
+  t.equal(await service.started(), result, 'started() resolves with the value')
+  t.equal(await startPromise, result, 'start() resolves with the value')
+  t.equal(
+    await service.started(),
+    result,
+    'started() resolves once started too'
+  )
+})
+
+test('start() resolves with a fresh value after a stop/start cycle', async (t) => {
+  let startCount = 0
+  const service = new StartStopStateMachine({
+    async start() {
+      startCount++
+      return { id: startCount }
+    },
+  })
+  t.deepEqual(await service.start(), { id: 1 }, 'first start value')
+  await service.stop()
+  t.deepEqual(await service.start(), { id: 2 }, 'second start runs again')
+})
+
+test('stop() releases the start result so it is not retained while stopped', async (t) => {
+  if (!global.gc) {
+    t.skip('run with --expose-gc to test start result is released')
+    return
+  }
+  let result = { handle: 'service-handle' }
+  const ref = new WeakRef(result)
+  const service = new StartStopStateMachine({
+    async start() {
+      return result
+    },
+  })
+  t.equal(await service.start(), result, 'start() resolves with the value')
+  await service.stop()
+  result = undefined
+  await new Promise((res) => setTimeout(res, 10))
+  global.gc()
+  t.equal(ref.deref(), undefined, 'start result is not retained after stop()')
+})
+
 async function nextTick() {
   return new Promise((res) => process.nextTick(res))
 }

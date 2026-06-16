@@ -6,7 +6,7 @@
   "scripts": {
     "test": "run-p lint type tape",
     "lint": "eslint .",
-    "tape": "c8 --100 tape test.js",
+    "tape": "c8 --100 node --expose-gc node_modules/tape/bin/tape test.js",
     "build-docs": "documentation readme index.js -f md --readme-file README.md --section API --infer-private '^(#|_)'",
     "posttest": "c8 report --reporter=text-lcov > ./coverage/lcov.info",
     "type": "tsc",
